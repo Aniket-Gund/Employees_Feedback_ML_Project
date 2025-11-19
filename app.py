@@ -7,10 +7,10 @@ import os
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
+from inspect import signature
 
 # -------------------
 # Helper: safe OneHotEncoder (works for all sklearn versions)
-from inspect import signature
 def make_ohe():
     sig = signature(OneHotEncoder)
     if "sparse_output" in sig.parameters:
@@ -78,20 +78,24 @@ except Exception as e:
     st.stop()
 
 # -------------------
-# Prediction
-# -------------------
-try:
-    pred = model.predict(input_df)[0]
-except:
-    # try with preprocessing
-    X_trans = preprocessor.fit(df[numeric + categorical]).transform(input_df)
-    pred = model.predict(X_trans)[0]
-
-# -------------------
-# Output (Clean & Minimal)
+# UI: show inputs and Predict button
 # -------------------
 st.subheader("Input Values")
 st.write(input_df)
 
-st.subheader("Predicted Feedback")
-st.success(str(pred))
+if st.button("Predict Feedback"):
+    # -------------------
+    # Prediction (runs only on button click)
+    # -------------------
+    try:
+        pred = model.predict(input_df)[0]
+    except Exception:
+        # try with preprocessing if direct predict fails
+        X_trans = preprocessor.fit(df[numeric + categorical]).transform(input_df)
+        pred = model.predict(X_trans)[0]
+
+    # -------------------
+    # Output (Clean & Minimal)
+    # -------------------
+    st.subheader("Predicted Feedback")
+    st.success(str(pred))
